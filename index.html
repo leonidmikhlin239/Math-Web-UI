@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Wiz Helper</title>
+    <!-- Styles for KaTeX and highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+      html, body, #root {
+        height: 100%;
+      }
+      .message-content ul {
+        @apply list-disc pl-5 my-2 space-y-1;
+      }
+      .message-content ol {
+        @apply list-decimal pl-5 my-2 space-y-1;
+      }
+      .message-content p {
+        @apply my-1;
+      }
+      .message-content p:first-child {
+          @apply mt-0;
+      }
+      .message-content p:last-child {
+          @apply mb-0;
+      }
+      .message-content strong {
+        @apply font-semibold;
+      }
+      .message-content code {
+        @apply bg-gray-200 dark:bg-gray-600 rounded px-1 py-0.5 text-sm;
+      }
+      .message-content blockquote {
+        @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-2;
+      }
+      /* Custom scrollbar styles */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #d1d5db; /* cool-gray-300 */
+        border-radius: 20px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #9ca3af; /* cool-gray-400 */
+      }
+      /* Dark mode scrollbar styles */
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #4b5563; /* gray-600 */
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #6b7280; /* gray-500 */
+      }
+       /* Markdown body styles */
+      .markdown-body .katex-display { @apply my-4 text-center; }
+      .markdown-body h1, .markdown-body h2, .markdown-body h3 { @apply leading-tight mt-5; }
+      .markdown-body p { @apply my-2; }
+      .markdown-body blockquote { @apply border-l-4 border-gray-300 pl-4 text-gray-600 my-3; }
+      .markdown-body ul, .markdown-body ol { @apply pl-5; }
+      .dark .markdown-body { @apply text-gray-200; }
+      .dark .markdown-body blockquote { @apply border-l-gray-600 text-gray-400; }
+      .dark .markdown-body code { @apply bg-white/10; }
+      .dark .markdown-body pre { @apply bg-white/10; }
+      .dark .markdown-body th { @apply border-b-gray-600; }
+      .dark .markdown-body td { @apply border-b-gray-700; }
+    </style>
+     <style>
+      body {
+        background-image: url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAgGBxAPDQgQEA0QDQ0QDw8QDQ0PDw8PDQ0PFREXFxURExUYHSggGBolGxMVITEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGxAQGy4mICYuNTc1LS8vLy0tNS0vNS0vLy0vLS0vLS0vLS8vLS0tLS0tLS0vLS0tLy0vLS0tLS0tLf/aAAwDAQACEQMRAD8A+4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACxIAKAEAAAkAAAAAADLEAAAAAAAAAAAAAEAAAEgDq4zGU6NN1KsuWC1bNOH8U4StO0ZypyfwzXLfpLS4H0wFYD0AAAAAAAAAAAAAAAAAAAAAAAAAAAxYAAgAABxOLeIKph+WlCMvWzT5k/ZW6nLwviStUm41oKnZtpwvy9V19zFxeQ+pgp4PiasKvu1fUj/fBvlWztt9ToUa0ZxjKElKMleLWjTMKAAAAAAAAAAAAAAAAAAAAAAAAACABYAAkAcecQYjE4aEo0oKUXf1G9Wt2lHZo7AB8Dh+I63rQqUqfJGzlT5m5tPo+y7GzC18RVxMZ1qMaVNJyhyvmu+zXU+vPG45wWInXrVo0qcYKNOzlO/LKXfp0Rix+gcM8W0MPLlk5TmvihCzkvFnSwWKp4imqtKV4v7poz5WjhcJWxVT06cKcVFOadSo7zfZLp9z6HhfDyw+FpUZ/FCNr929WvgW4OmAAAAAAAAAAAAAAAAAAAAAAAIAAAJAAAEAAHF41iK+Hw8p4eHNUsn2Ub6ya6o7QA+KoYrEVsVTlVhBSp/wDLoqXNGV+vZvr2PqOBcXXxGHc68OWXNJRW1lHZxZz+NYOthaqrYeEp05PmnCPxQfVrou50PC/CTw2GdOq/ffKU2to32ivu33LK46QAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAACQAAAAAAAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAEgACwFAAAAAAAAAAAAAAAAAAAAAAAAAQAABYAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAf/2Q==');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^9.0.1",
+    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.0",
+    "remark-math": "https://aistudiocdn.com/remark-math@^6.0.0",
+    "rehype-katex": "https://aistudiocdn.com/rehype-katex@^7.0.0",
+    "rehype-highlight": "https://aistudiocdn.com/rehype-highlight@^7.0.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

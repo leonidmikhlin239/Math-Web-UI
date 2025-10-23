@@ -1,0 +1,5 @@
+{
+  "name": "Math Wiz Helper",
+  "description": "An interactive chatbot powered by Gemini to help students aged 10-12 learn and solve math problems. The chatbot provides step-by-step guidance and explanations without giving direct answers, fostering a better understanding of mathematical concepts.",
+  "requestFramePermissions": []
+}
