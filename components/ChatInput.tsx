@@ -1,12 +1,28 @@
 import React, { useState } from 'react';
 import Icon from './Icon';
+import { IndexManifest } from '../types';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   loading: boolean;
+  indexManifest: IndexManifest | null;
+  selectedBookTitle: string | null;
+  setSelectedBookTitle: (title: string | null) => void;
+  selectedChapterTitle: string | null;
+  setSelectedChapterTitle: (title: string | null) => void;
+  onChapterSelect: (bookTitle: string, chapterTitle: string) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, loading }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ 
+  onSendMessage, 
+  loading, 
+  indexManifest,
+  selectedBookTitle,
+  setSelectedBookTitle,
+  selectedChapterTitle,
+  setSelectedChapterTitle,
+  onChapterSelect
+}) => {
   const [input, setInput] = useState('');
 
   const handleSend = () => {
@@ -15,8 +31,26 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, loading }) => {
     setInput('');
   };
 
+  const handleBookChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newBookTitle = e.target.value;
+    setSelectedBookTitle(newBookTitle || null);
+    setSelectedChapterTitle(null); // Reset chapter when book changes
+  };
+
+  const handleChapterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newChapterTitle = e.target.value;
+    setSelectedChapterTitle(newChapterTitle || null);
+    if (selectedBookTitle && newChapterTitle) {
+      onChapterSelect(selectedBookTitle, newChapterTitle);
+    }
+  };
+  
+  const selectedBookObject = indexManifest?.books.find(b => b.title === selectedBookTitle);
+  const availableChapters = selectedBookObject?.chapters || [];
+
   const handleTestPrompt = () => {
-    const testPrompt = "Покажи задачу 1 из раздела '7 класс - Делимость и остатки', а потом покажи ее решение";
+    if (!selectedChapterTitle) return;
+    const testPrompt = "Покажи задачу номер 27 из текущей главы и сразу же ее решение.";
     onSendMessage(testPrompt);
   };
 
@@ -29,11 +63,37 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, loading }) => {
   return (
     <div className="w-4/5 flex-shrink-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
       <div className="p-4">
-        <div className="flex justify-center mb-3">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
+          {/* Book Selector */}
+          <select
+            value={selectedBookTitle || ''}
+            onChange={handleBookChange}
+            disabled={loading || !indexManifest}
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">Выберите книгу</option>
+            {indexManifest?.books.map(book => (
+              <option key={book.title} value={book.title}>{book.title}</option>
+            ))}
+          </select>
+
+          {/* Chapter Selector */}
+          <select
+            value={selectedChapterTitle || ''}
+            onChange={handleChapterChange}
+            disabled={loading || !selectedBookTitle || availableChapters.length === 0}
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">Выберите главу</option>
+            {availableChapters.map(chapter => (
+              <option key={chapter.title} value={chapter.title}>{chapter.title}</option>
+            ))}
+          </select>
+
           <button
             onClick={handleTestPrompt}
-            disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-200 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !selectedChapterTitle}
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-200 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Тестовый вопрос
           </button>

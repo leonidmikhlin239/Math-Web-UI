@@ -1,114 +1,122 @@
-import { ProblemLibrary, LoadingProgress } from '../types';
+import type { Dispatch, SetStateAction } from 'react';
+import { IndexManifest, LoadingProgress, BookInfo, ChapterInfo, Task } from '../types';
 
-const FILES_TO_LOAD = [
-    { grade: 7, url: 'https://raw.githubusercontent.com/leonidmikhlin239/zadachki/main/grade7_tasks_solutions.ndjson' },
-    { grade: 8, url: 'https://raw.githubusercontent.com/leonidmikhlin239/zadachki/main/grade8_tasks_solutions.ndjson' },
-    { grade: 9, url: 'https://raw.githubusercontent.com/leonidmikhlin239/zadachki/main/grade9_tasks_solutions.ndjson' },
-];
+const GLOBAL_INDEX_URL = 'https://raw.githubusercontent.com/leonidmikhlin239/tasks-db/master/global-chapter-index.json';
+const BASE_URL = 'https://raw.githubusercontent.com/leonidmikhlin239/tasks-db/master/';
 
-interface NdjsonRecord {
-    id: string;
-    grade: number;
-    section: string;
-    number_in_section: number;
-    condition_latex: string;
-    solution_latex: string;
-}
+/**
+ * Loads ONLY the manifest file containing the structure of books and chapters.
+ * Does NOT load the actual task content.
+ */
+export const loadIndexManifest = async (
+    setProgress: Dispatch<SetStateAction<LoadingProgress>>
+): Promise<{ manifest: IndexManifest; bookTitles: string[] }> => {
+    console.log('[INDEX] Starting to load index manifest...');
+    setProgress({ status: 'Загрузка манифеста библиотеки...' });
 
-const processNdjsonString = (text: string): NdjsonRecord[] => {
-    return text
-        .split('\n')
-        .filter(line => line.trim() !== '')
-        .map(line => JSON.parse(line));
-};
-
-export const loadProblemLibrary = async (
-    setProgress: React.Dispatch<React.SetStateAction<LoadingProgress>>
-): Promise<{ library: ProblemLibrary; sections: string[] }> => {
-    console.log('[ПАРСИНГ-ДЕБАГ] Запуск загрузки библиотеки задач...');
-    const library: ProblemLibrary = {
-        tasks: {},
-        solutions: {},
-    };
-    const allSections = new Set<string>();
-    let totalProblems = 0;
-    
-    setProgress(prev => ({ ...prev, totalFiles: FILES_TO_LOAD.length }));
-
-    for (let i = 0; i < FILES_TO_LOAD.length; i++) {
-        const file = FILES_TO_LOAD[i];
-        const fileName = `grade${file.grade}_tasks_solutions.ndjson`;
-
-        try {
-            // Step 1: Fetching
-            setProgress(prev => ({ ...prev, currentFile: fileName, status: 'Загрузка...', fileSizeBytes: 0, fileLineCount: 0 }));
-            console.log(`[ЗАГРУЗКА] Запрашиваю файл: ${file.url}`);
-            
-            const response = await fetch(file.url);
-            
-            if (!response.ok) {
-                const errorText = `HTTP error! Status: ${response.status} ${response.statusText}`;
-                console.error(`[ЗАГРУЗКА] Не удалось загрузить ${file.url}: ${errorText}`);
-                throw new Error(errorText);
-            }
-            console.log(`[ЗАГРУЗКА] Успешно загружен ${file.url}`);
-
-            const rawText = await response.text();
-            const sizeBytes = new Blob([rawText]).size;
-            const lineCount = rawText.split('\n').filter(line => line.trim() !== '').length;
-
-            console.log(`[ЗАГРУЗКА] Размер файла: ${sizeBytes} байт, строк: ${lineCount}`);
-            setProgress(prev => ({ ...prev, status: 'Обработка...', fileSizeBytes: sizeBytes, fileLineCount: lineCount }));
-            
-            // Step 2: Parsing
-            console.log(`[ПАРСИНГ-ДЕБАГ] Начало обработки файла: ${fileName}. Найдено ${lineCount} записей.`);
-            const records = processNdjsonString(rawText);
-            
-            if (records.length > 0) {
-                console.log(`[ПАРСИНГ-ДЕБАГ] Пример первой записи из ${fileName}:`, JSON.stringify(records[0]));
-            } else {
-                 console.warn(`[ПАРСИНГ-ДЕБАГ] В файле ${fileName} не найдено записей для обработки.`);
-            }
-
-            let problemsInFile = 0;
-            const sectionsInFile = new Set<string>();
-            
-            for (const record of records) {
-                const sectionKey = `${record.grade} класс - ${record.section}`;
-                sectionsInFile.add(sectionKey);
-                
-                if (!library.tasks[sectionKey]) {
-                    library.tasks[sectionKey] = {};
-                    library.solutions[sectionKey] = {};
-                }
-                
-                library.tasks[sectionKey][record.number_in_section] = record.condition_latex;
-                if (record.solution_latex) {
-                    library.solutions[sectionKey][record.number_in_section] = record.solution_latex;
-                }
-                
-                allSections.add(sectionKey);
-                problemsInFile++;
-            }
-            totalProblems += problemsInFile;
-
-            console.log(`[ПАРСИНГ-ДЕБАГ] Файл ${fileName} обработан. Добавлено ${problemsInFile} задач.`);
-            console.log(`[ПАРСИНГ-ДЕБАГ] Затронутые разделы в файле: ${Array.from(sectionsInFile).join(', ')}`);
-            console.log(`[ПАРСИНГ-ДЕБАГ] Общее количество задач сейчас: ${totalProblems}`);
-
-            setProgress(prev => ({
-                ...prev,
-                filesProcessed: i + 1,
-                totalProblems: totalProblems
-            }));
-        } catch (error) {
-            console.error(`[ДЕБАГ] Критическая ошибка при обработке ${fileName}:`, error);
-            throw new Error(`Не удалось загрузить библиотеку задач: ${error.message}`);
-        }
+    let manifestResponse;
+    try {
+        manifestResponse = await fetch(GLOBAL_INDEX_URL, { cache: 'no-cache' });
+    } catch (e) {
+        const errorText = `Не удалось получить манифест: ${e instanceof Error ? e.message : String(e)}`;
+        setProgress({ status: `Ошибка: ${errorText}` });
+        throw new Error(errorText);
     }
 
-    const sortedSections = Array.from(allSections).sort();
-    console.log(`[ПАРСИНГ-ДЕБАГ] Обработка всех файлов завершена. Всего найдено ${sortedSections.length} уникальных разделов.`);
+    if (!manifestResponse.ok) {
+        const errorText = `Ошибка загрузки манифеста: ${manifestResponse.statusText} (${manifestResponse.status})`;
+        setProgress({ status: `Ошибка: ${errorText}` });
+        throw new Error(errorText);
+    }
     
-    return { library, sections: sortedSections };
+    const manifestText = await manifestResponse.text();
+
+    let manifestJson: any;
+    try {
+        manifestJson = JSON.parse(manifestText);
+    } catch (e) {
+        const error = e instanceof Error ? e : new Error(String(e));
+        const detailedMessage = `Ошибка парсинга JSON манифеста: ${error.message}`;
+        setProgress({ status: `Ошибка: ${detailedMessage}` });
+        throw new Error(detailedMessage);
+    }
+
+    // --- Transform raw manifest into a clean IndexManifest structure ---
+    const books: BookInfo[] = [];
+    for (const bookSlug in manifestJson) {
+        const rawBook = manifestJson[bookSlug];
+        if (typeof rawBook !== 'object' || rawBook === null) continue;
+
+        const bookTitle = bookSlug.replace(/_utf8$/, '').replace(/_/g, ' ');
+        const chapters: ChapterInfo[] = [];
+
+        for (const chapterKey in rawBook) {
+            const rawChapter = rawBook[chapterKey];
+            if (typeof rawChapter === 'object' && rawChapter !== null && typeof rawChapter.chapter_json === 'string') {
+                chapters.push({
+                    title: rawChapter.title || chapterKey,
+                    path: rawChapter.chapter_json
+                });
+            }
+        }
+        
+        if (chapters.length > 0) {
+            books.push({ title: bookTitle, chapters });
+        }
+    }
+    
+    const manifest: IndexManifest = { books };
+    const bookTitles = manifest.books.map(b => b.title);
+
+    setProgress({
+      status: 'Манифест загружен. Выберите книгу и главу.',
+      booksLoaded: manifest.books.length,
+      chaptersLoaded: manifest.books.reduce((acc, book) => acc + book.chapters.length, 0),
+    });
+    
+    console.log('[INDEX] Manifest loaded successfully.');
+    return { manifest, bookTitles };
+};
+
+/**
+ * Fetches and parses the tasks for a single chapter from its JSON file.
+ */
+export const loadChapterTasks = async (path: string): Promise<Task[]> => {
+    const url = `${BASE_URL}${path}`;
+    try {
+        const response = await fetch(url, { cache: 'no-cache' });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${url} (${response.status})`);
+        }
+        const chapterJson = await response.json();
+
+        // Generate a unique prefix for task IDs from the file path
+        // e.g., "4_klass_utf8/chapter_1/chapter.json" -> "4_klass_utf8_chapter_1"
+        const idPrefix = path.replace('/chapter.json', '').replace(/\//g, '_');
+
+        const cleanText = (text: string) => {
+            // Removes a common TeX artifact where ".\" is used to force a space after a period.
+            // In HTML/Markdown rendering, this just leaves a stray backslash.
+            return text.replace(/\.\\/g, '.');
+        };
+
+        const tasks: Task[] = (Array.isArray(chapterJson) ? chapterJson : [])
+            .map((rawTask: any): Task | null => {
+                if (typeof rawTask.i !== 'number' || typeof rawTask.problem !== 'string' || typeof rawTask.solution !== 'string') {
+                   return null;
+                }
+                return {
+                    id: `${idPrefix}_${rawTask.i}`,
+                    taskNumber: rawTask.i,
+                    problem: cleanText(rawTask.problem),
+                    solution: cleanText(rawTask.solution)
+                };
+            }).filter((t): t is Task => t !== null);
+
+        return tasks;
+
+    } catch (error) {
+        console.error(`[INDEX] Failed to load or parse chapter from ${url}:`, error);
+        return []; // Return empty array on failure
+    }
 };

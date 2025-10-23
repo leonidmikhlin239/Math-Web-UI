@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-type IconName = 'user' | 'bot' | 'send';
+type IconName = 'user' | 'bot' | 'send' | 'bug' | 'close';
 
 interface IconProps {
   name: IconName;
@@ -35,6 +35,16 @@ const ICONS: Record<IconName, React.FC<React.SVGProps<SVGSVGElement>>> = {
   send: (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+    </svg>
+  ),
+  bug: (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+      <path d="M4.355.522a.5.5 0 0 1 .623.333l.291.956A4.979 4.979 0 0 1 8 1c1.007 0 1.946.298 2.731.811l.29-.956a.5.5 0 1 1 .957.29l-.41 1.352A4.985 4.985 0 0 1 13 6h.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 1 1 0v.5A1.5 1.5 0 0 1 13.5 7H13v1h1.5a.5.5 0 0 1 0 1H13v1h.5a1.5 1.5 0 0 1 1.5 1.5v.5a.5.5 0 1 1-1 0v-.5a.5.5 0 0 0-.5-.5H13a5 5 0 0 1-10 0h-.5a.5.5 0 0 0-.5.5v.5a.5.5 0 1 1-1 0v-.5A1.5 1.5 0 0 1 2.5 11H3V9H1.5a.5.5 0 0 1 0-1H3V7H1.5A1.5 1.5 0 0 1 1 5.5V5a.5.5 0 0 1 1 0v.5a.5.5 0 0 0 .5.5H3c0-1.364.547-2.601 1.432-3.503l-.41-1.352a.5.5 0 0 1 .333-.623zM8 7a4 4 0 0 0-4 4h8a4 4 0 0 0-4-4zm0 1a3 3 0 0 1 3 3H5a3 3 0 0 1 3-3zm-2-6.118A3.993 3.993 0 0 0 8 2a3.993 3.993 0 0 0 2-1.118l-.29.956A3.998 3.998 0 0 0 8 3a3.998 3.998 0 0 0-1.71-.162l-.29-.956z"/>
+    </svg>
+  ),
+  close: (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
   ),
 };

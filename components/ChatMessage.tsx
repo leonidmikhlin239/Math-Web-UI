@@ -14,7 +14,7 @@ const ChatMessage: React.FC<{ message: ChatMessageType }> = ({ message }) => {
         </div>
       )}
       <div
-        className={`min-w-0 max-w-[min(85%,48rem)] p-4 rounded-2xl shadow-md break-words whitespace-pre-wrap ${
+        className={`min-w-0 max-w-[min(85%,48rem)] p-4 rounded-2xl shadow-md break-words ${
           isUser
             ? 'bg-blue-500 text-white rounded-br-none'
             : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'

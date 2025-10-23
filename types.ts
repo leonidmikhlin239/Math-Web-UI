@@ -4,28 +4,41 @@ export interface ChatMessage {
   sender: 'user' | 'bot';
   imageUrl?: string;
   imagePrompt?: string;
+  hidden?: boolean;
 }
 
-export interface Problem {
-  [problemNumber: string]: string; // TeX content
+export interface Task {
+  id: string;
+  taskNumber: number;
+  problem: string; 
+  solution: string;
 }
 
-export interface ProblemSection {
-  [sectionName: string]: Problem;
+// --- New types for lazy-loading architecture ---
+
+/** Describes a single chapter within the manifest. */
+export interface ChapterInfo {
+  title: string;
+  /** Relative path to the chapter's JSON file. */
+  path: string;
 }
 
-export interface ProblemLibrary {
-  tasks: ProblemSection;
-  solutions: ProblemSection;
+/** Describes a single book within the manifest. */
+export interface BookInfo {
+  title:string;
+  chapters: ChapterInfo[];
 }
+
+/** Represents the structure of the initial manifest file (`global-chapter-index.json`). */
+export interface IndexManifest {
+  books: BookInfo[];
+}
+
 
 export interface LoadingProgress {
-  currentFile: string;
-  filesProcessed: number;
-  totalFiles: number;
-  totalProblems: number;
-  // New fields for debugging
   status: string;
-  fileSizeBytes: number;
-  fileLineCount: number;
+  totalTasks?: number;
+  booksLoaded?: number;
+  chaptersLoaded?: number;
+  tasksLoaded?: number;
 }

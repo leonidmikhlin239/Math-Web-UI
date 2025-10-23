@@ -26,7 +26,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, loading }) => {
         className="flex-1 min-h-0 p-6 overflow-y-auto custom-scrollbar"
         style={{ overflowAnchor: 'none' }}
       >
-        {messages.map((message) => (
+        {messages.filter(msg => !msg.hidden).map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
         {loading && messages[messages.length - 1]?.sender === 'user' && (
